@@ -12,6 +12,32 @@ function getMidiTimestamp(measure, beat, beatIndexOffset = 1) {
   return Math.floor(timestamp * PPQN);
 };
 
+// sorts notes by timestamp and adds duration and wait to each object
+function withMidiInfo(notes) {
+  const result = [];
+  const sortedInput = notes.sort((a, b) => a.timestamp - b.timestamp);
+
+  let prevTime = 0;
+  for(let note of sortedInput) {
+    if(result.length && note.timestamp === prevTime) {
+      result[result.length - 1].pitch.push(note.pitch[0]);
+    }
+    else {
+      if(result.length) {
+        prevTime += 0.25;
+      }
+      result.push({
+        ...note,
+        duration: 16, // TODO: variable
+        wait: `T${(note.timestamp - prevTime) * 128}`
+      });
+    }
+    prevTime = note.timestamp;
+  }
+  console.table(result)
+  return result;
+}
+
 // lang 3
 const clip = [
   {
@@ -26,7 +52,7 @@ const clip = [
    // this pattern will know to repeat until the clip is over (all patterns have finished)
   {
     patternLang: lang.c,
-    pattern: 'H---h---',
+    pattern: 'Hh'.repeat(16),
     tick: 8
   }
 ];
@@ -42,7 +68,7 @@ const midiNoteNames = {
 }
 
 // lang 1
-const notes = [];
+let notes = [];
 clip.forEach(clipPart => {
   let tickPosition = 0;
   const tickLength = 512 / clipPart.tick; // midiwriter uses 128 ticks per beat
@@ -58,7 +84,8 @@ clip.forEach(clipPart => {
           duration: `${clipPart.tick}`,
           // duration: `T${tickLength}`, // these both should do the same thing
           velocity: mapping.velocity,
-          startTick: tickPosition,
+          // startTick: tickPosition,
+          timestamp: tickPosition / 128 // PPQN-neutral timestamps
         }
         notes.push(noteEvent);
       }
@@ -67,6 +94,7 @@ clip.forEach(clipPart => {
   }
 });
 
+notes = withMidiInfo(notes);
 console.table(notes);
 
 const track = new MidiWriter.Track();
@@ -74,9 +102,20 @@ const track = new MidiWriter.Track();
 for (note of notes) {
   track.addEvent(new MidiWriter.NoteEvent(note));
 }
+
 const write = new MidiWriter.Writer(track);
 write.saveMIDI('test');
 
 const midiSong = fs.readFileSync('test.mid', 'binary');
 const jsonSong = midiConverter.midiToJson(midiSong);
 fs.writeFileSync('test.json', JSON.stringify(jsonSong, null, 2));
+
+
+// 1/4 = 16/1
+// 1/2 = 8/1
+// 1/1 = 4/1
+// 4/1 = 1/1
+
+
+// start with 4
+// divide by the time length
