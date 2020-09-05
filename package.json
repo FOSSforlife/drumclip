@@ -1,0 +1,17 @@
+{
+  "name": "drumclip",
+  "version": "1.0.0",
+  "description": "Create drum MIDIs using strings of text",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "patch-package"
+  },
+  "author": "Elias Jackson",
+  "license": "ISC",
+  "dependencies": {
+    "midi-converter": "^0.1.5",
+    "midi-writer-js": "^1.7.4",
+    "patch-package": "^6.2.2"
+  }
+}

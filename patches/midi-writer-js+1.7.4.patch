@@ -1,0 +1,13 @@
+diff --git a/node_modules/midi-writer-js/build/index.js b/node_modules/midi-writer-js/build/index.js
+index 0ea3b6f..5d0f6f9 100644
+--- a/node_modules/midi-writer-js/build/index.js
++++ b/node_modules/midi-writer-js/build/index.js
+@@ -1473,7 +1473,7 @@ var Writer = /*#__PURE__*/function () {
+       var fs = require('fs');
+ 
+       var buffer = new Buffer.from(this.buildFile());
+-      fs.writeFile(filename + '.mid', buffer, function (err) {
++      fs.writeFileSync(filename + '.mid', buffer, function (err) {
+         if (err) throw err;
+       });
+     }
